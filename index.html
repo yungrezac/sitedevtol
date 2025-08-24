@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>devtol - Разработка мини-аппов</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            touch-action: none; /* Отключает стандартное поведение для 3D-взаимодействия */
+            background-color: #111827; /* Темно-серый фон */
+        }
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+        .content-overlay {
+            position: relative;
+            z-index: 1;
+            background: linear-gradient(to bottom, rgba(17, 24, 39, 0.4) 0%, rgba(17, 24, 39, 0.9) 85%, #111827 100%);
+        }
+    </style>
+</head>
+<body class="text-white overflow-hidden">
+
+    <!-- 3D Фон -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Основной контент -->
+    <div class="content-overlay flex flex-col h-screen p-6 justify-between">
+        
+        <!-- Пустой хедер для отступа сверху -->
+        <header></header>
+
+        <!-- Центральный блок с заголовком -->
+        <main class="flex-grow flex flex-col items-center justify-center text-center pt-20">
+             <h1 class="text-5xl font-bold text-white drop-shadow-lg">devtol</h1>
+             <p class="text-base text-gray-200 mt-4 drop-shadow-md">Акция! Полное создание Telegram Mini App за 15.000 ₽</p>
+        </main>
+
+        <!-- Кнопка заказа -->
+        <footer class="w-full max-w-md mx-auto pb-4">
+            <button class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg transform transition-transform duration-200 hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-indigo-500 focus:ring-opacity-50">
+                Заказать мини-апп
+            </button>
+        </footer>
+    </div>
+
+    <!-- Подключение Three.js -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+
+        // --- Базовая настройка сцены ---
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ 
+            canvas: document.getElementById('bg-canvas'),
+            antialias: true,
+            alpha: true 
+        });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        camera.position.z = 7;
+
+        // --- Освещение ---
+        scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+        const dirLight = new THREE.DirectionalLight(0xffffff, 2.5);
+        dirLight.position.set(8, 15, 10);
+        scene.add(dirLight);
+
+        // --- Группа для всех телефонов ---
+        const phoneGroup = new THREE.Group();
+        scene.add(phoneGroup);
+
+        // --- Функция для создания модели телефона ---
+        function createPhone(screenTexture) {
+            const phone = new THREE.Group();
+            const bodyMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x18181b, 
+                roughness: 0.15, 
+                metalness: 0.9,
+                envMapIntensity: 0.5
+            });
+
+            // Корпус
+            const bodyGeometry = new RoundedBoxGeometry(1.8, 3.8, 0.2, 5, 0.05);
+            const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+            phone.add(body);
+
+            // Экран
+            const screenGeometry = new THREE.PlaneGeometry(1.6, 3.6);
+            const screenMaterial = new THREE.MeshStandardMaterial({ 
+                map: screenTexture,
+                emissive: 0xaaaaaa, // Делает экран немного светящимся
+                emissiveMap: screenTexture,
+                roughness: 0.4,
+            });
+            const screen = new THREE.Mesh(screenGeometry, screenMaterial);
+            screen.position.z = 0.11;
+            phone.add(screen);
+
+            return phone;
+        }
+
+        // --- Создание и размещение телефонов ---
+        // --- ИЗМЕНЕНИЕ: Используем ссылки на изображения вместо генерации текстур ---
+        const imageUrls = [
+            'https://i.postimg.cc/8cdjb9Tp/IMG-20250824-145620-324.jpg',
+            'https://i.postimg.cc/7hr50w8t/Screenshot-20250824-145346.jpg',
+            'https://i.postimg.cc/BQs8vSCX/Screenshot-20250824-145427.jpg',
+            'https://i.postimg.cc/yYPDgMfn/Screenshot-20250824-145508.jpg',
+            'https://i.postimg.cc/zDTb5bKs/Screenshot-20250824-145519.jpg'
+        ];
+
+        const textureLoader = new THREE.TextureLoader();
+        const phones = [];
+        const radius = 3; 
+        imageUrls.forEach((url, i) => {
+            // Загружаем текстуру из URL
+            const texture = textureLoader.load(url);
+            texture.colorSpace = THREE.SRGBColorSpace; // Коррекция цвета для изображений
+
+            const phone = createPhone(texture);
+            
+            const angle = (i / imageUrls.length) * Math.PI * 2;
+            phone.position.x = radius * Math.cos(angle);
+            phone.position.y = radius * Math.sin(angle);
+            phone.rotation.z = angle + Math.PI / 2;
+
+            phones.push(phone);
+            phoneGroup.add(phone);
+        });
+
+        // --- Управление мышью/касанием ---
+        let mouseX = 0, mouseY = 0;
+        let targetX = 0, targetY = 0;
+        const windowHalfX = window.innerWidth / 2;
+        const windowHalfY = window.innerHeight / 2;
+
+        function onDocumentMouseMove(event) {
+            mouseX = (event.clientX - windowHalfX) * 0.5;
+            mouseY = (event.clientY - windowHalfY) * 0.5;
+        }
+        function onDocumentTouchMove(event) {
+            if (event.touches.length === 1) {
+                event.preventDefault();
+                mouseX = (event.touches[0].pageX - windowHalfX) * 0.5;
+                mouseY = (event.touches[0].pageY - windowHalfY) * 0.5;
+            }
+        }
+        document.addEventListener('mousemove', onDocumentMouseMove);
+        document.addEventListener('touchmove', onDocumentTouchMove, { passive: false });
+
+
+        // --- Анимация ---
+        const clock = new THREE.Clock();
+        function animate() {
+            requestAnimationFrame(animate);
+            const elapsedTime = clock.getElapsedTime();
+
+            targetX = mouseX * .002;
+            targetY = mouseY * .002;
+
+            // Плавное вращение группы
+            phoneGroup.rotation.y += 0.2 * (targetX - phoneGroup.rotation.y);
+            phoneGroup.rotation.x += 0.2 * (targetY - phoneGroup.rotation.x);
+            phoneGroup.rotation.z = -elapsedTime * 0.1;
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // --- Адаптивность ---
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
