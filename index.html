@@ -44,7 +44,6 @@
 
         <!-- Кнопка заказа и акция -->
         <footer class="absolute bottom-6 left-0 right-0 w-full max-w-md mx-auto px-6">
-            <!-- ИЗМЕНЕНИЕ: Уменьшена высота кнопки (py-4 -> py-3) -->
             <button 
                 onclick="window.open('https://t.me/enilezhnin', '_blank')"
                 class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform transition-transform duration-200 hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-indigo-500 focus:ring-opacity-50">
@@ -99,24 +98,19 @@
                 metalness: 0.9,
                 envMapIntensity: 0.5
             });
-
-            // Корпус
             const bodyGeometry = new RoundedBoxGeometry(1.8, 3.8, 0.2, 5, 0.05);
             const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
             phone.add(body);
-
-            // Экран
             const screenGeometry = new THREE.PlaneGeometry(1.6, 3.6);
             const screenMaterial = new THREE.MeshStandardMaterial({ 
                 map: screenTexture,
-                emissive: 0xaaaaaa, // Делает экран немного светящимся
+                emissive: 0xaaaaaa,
                 emissiveMap: screenTexture,
                 roughness: 0.4,
             });
             const screen = new THREE.Mesh(screenGeometry, screenMaterial);
             screen.position.z = 0.11;
             phone.add(screen);
-
             return phone;
         }
 
@@ -128,25 +122,150 @@
             'https://i.postimg.cc/yYPDgMfn/Screenshot-20250824-145508.jpg',
             'https://i.postimg.cc/zDTb5bKs/Screenshot-20250824-145519.jpg'
         ];
-
         const textureLoader = new THREE.TextureLoader();
-        const phones = [];
         const radius = 3; 
         imageUrls.forEach((url, i) => {
-            // Загружаем текстуру из URL
             const texture = textureLoader.load(url);
-            texture.colorSpace = THREE.SRGBColorSpace; // Коррекция цвета для изображений
-
+            texture.colorSpace = THREE.SRGBColorSpace;
             const phone = createPhone(texture);
-            
             const angle = (i / imageUrls.length) * Math.PI * 2;
             phone.position.x = radius * Math.cos(angle);
             phone.position.y = radius * Math.sin(angle);
             phone.rotation.z = angle + Math.PI / 2;
-
-            phones.push(phone);
             phoneGroup.add(phone);
         });
+
+        // --- ИЗМЕНЕНИЕ: Анимированный код в фоне ---
+        const codeSnippets = [
+            `function(a, b) {\n  return a * b;\n}`,
+            `fetch(url)\n  .then(res => res.json())`,
+            `.container {\n  display: flex;\n  align-items: center;\n}`,
+            `const app = express();`,
+            `<h1>Hello World</h1>`,
+            `User.find({ name: 'dev' })`,
+            `SELECT * FROM users;`,
+            `print("Hello, Python!")`,
+            `[...arr1, ...arr2]`,
+            `const { data } = await axios.get(api);`,
+            `useEffect(() => {\n  // Side effect\n}, [deps]);`,
+            `git commit -m "feat: new feature"`,
+            `npm install three`,
+            `<div className="App">\n  <p>React App</p>\n</div>`,
+            `@media (max-width: 600px) {\n  .menu {\n    display: none;\n  }\n}`,
+            `def fibonacci(n):\n    if n <= 1:\n        return n`,
+            `Promise.all([p1, p2])`,
+            `Math.random() * 100`,
+            `let i = 0;\nwhile (i < 5) {\n  console.log(i);\n  i++;\n}`
+        ];
+
+        const codeColors = {
+            keyword: '#c586c0', 
+            string: '#ce9178',
+            comment: '#6a9955',
+            number: '#b5cea8',
+            default: '#d4d4d4'
+        };
+
+        function highlight(code) {
+            return code
+                .replace(/\b(function|const|let|var|return|class|constructor|import|from|new|this|async|await|export|default|def|if|else|while)\b/g, `<span style="color:${codeColors.keyword}">$&</span>`)
+                .replace(/(\'|\"|`)(.*?)(\'|\"|`)/g, `<span style="color:${codeColors.string}">$&</span>`)
+                .replace(/\/\/(.*)/g, `<span style="color:${codeColors.comment}">$&</span>`)
+                .replace(/\b(\d+)\b/g, `<span style="color:${codeColors.number}">$&</span>`);
+        }
+
+        const codeCanvases = [];
+        const codeGroup = new THREE.Group();
+        scene.add(codeGroup);
+
+        const totalCodePlanes = 50; // Увеличиваем количество фрагментов кода
+
+        for (let i = 0; i < totalCodePlanes; i++) {
+            const code = codeSnippets[Math.floor(Math.random() * codeSnippets.length)];
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            const fontSize = 28;
+            const fontFamily = 'monospace';
+            context.font = `${fontSize}px ${fontFamily}`;
+            
+            const lines = code.split('\n');
+            const longestLine = lines.reduce((a, b) => a.length > b.length ? a : b);
+            canvas.width = context.measureText(longestLine).width + 40;
+            canvas.height = lines.length * (fontSize * 1.2) + 20;
+
+            const texture = new THREE.CanvasTexture(canvas);
+            const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, opacity: 0 });
+            const geometry = new THREE.PlaneGeometry(canvas.width / 120, canvas.height / 120);
+            const plane = new THREE.Mesh(geometry, material);
+
+            plane.position.set(
+                (Math.random() - 0.5) * 30, // Расширяем диапазон появления
+                (Math.random() - 0.5) * 20,
+                -15 - Math.random() * 20
+            );
+            plane.rotation.set(
+                (Math.random() - 0.5) * 0.4,
+                (Math.random() - 0.5) * 0.4,
+                (Math.random() - 0.5) * 0.2
+            );
+            
+            codeGroup.add(plane);
+
+            codeCanvases.push({
+                context, canvas, texture, material, code,
+                currentChar: 0,
+                totalChars: code.length,
+                fontSize, fontFamily,
+                startTime: Date.now() + Math.random() * 20000, // Случайная задержка до 20 секунд
+                isTyping: false
+            });
+        }
+
+        function updateCodeAnimation() {
+            const now = Date.now();
+            codeCanvases.forEach(item => {
+                if (!item.isTyping && now >= item.startTime) {
+                    item.isTyping = true;
+                }
+
+                if (item.isTyping && item.currentChar < item.totalChars) {
+                    if (item.material.opacity < 0.8) {
+                        item.material.opacity += 0.01; // Плавное появление
+                    }
+
+                    item.currentChar += Math.random() > 0.3 ? 1 : 0; // Случайная скорость печати
+                    
+                    const currentCode = item.code.substring(0, item.currentChar);
+                    const highlightedCode = highlight(currentCode);
+                    const lines = highlightedCode.split('\n');
+
+                    item.context.clearRect(0, 0, item.canvas.width, item.canvas.height);
+                    
+                    let y = item.fontSize + 10;
+                    lines.forEach(line => {
+                        let x = 20;
+                        const parts = line.split(/<span style="color:(.*?)">|<\/span>/g).filter(Boolean);
+                        item.context.font = `${item.fontSize}px ${item.fontFamily}`;
+                        
+                        for (let i = 0; i < parts.length; i++) {
+                            if (parts[i].startsWith('#')) {
+                                item.context.fillStyle = parts[i];
+                                const text = parts[i + 1] || '';
+                                item.context.fillText(text, x, y);
+                                x += item.context.measureText(text).width;
+                                i++;
+                            } else {
+                                item.context.fillStyle = codeColors.default;
+                                item.context.fillText(parts[i], x, y);
+                                x += item.context.measureText(parts[i]).width;
+                            }
+                        }
+                        y += item.fontSize * 1.2;
+                    });
+                    item.texture.needsUpdate = true;
+                }
+            });
+        }
 
         // --- Управление мышью/касанием ---
         let mouseX = 0, mouseY = 0;
@@ -168,7 +287,6 @@
         document.addEventListener('mousemove', onDocumentMouseMove);
         document.addEventListener('touchmove', onDocumentTouchMove, { passive: false });
 
-
         // --- Анимация ---
         const clock = new THREE.Clock();
         function animate() {
@@ -178,10 +296,12 @@
             targetX = mouseX * .002;
             targetY = mouseY * .002;
 
-            // Плавное вращение группы
             phoneGroup.rotation.y += 0.2 * (targetX - phoneGroup.rotation.y);
             phoneGroup.rotation.x += 0.2 * (targetY - phoneGroup.rotation.x);
             phoneGroup.rotation.z = -elapsedTime * 0.1;
+
+            updateCodeAnimation();
+            codeGroup.position.z = Math.sin(elapsedTime * 0.1) * 2;
 
             renderer.render(scene, camera);
         }
