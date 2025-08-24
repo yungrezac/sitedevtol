@@ -33,26 +33,24 @@
     <canvas id="bg-canvas"></canvas>
 
     <!-- Основной контент -->
-    <div class="content-overlay flex flex-col h-screen p-6 justify-between">
+    <div class="content-overlay flex flex-col h-screen p-6">
         
-        <!-- Пустой хедер для отступа сверху -->
-        <header></header>
-
         <!-- Центральный блок с заголовком -->
-        <main class="flex-grow flex flex-col items-center justify-center text-center pt-20">
-             <!-- ИЗМЕНЕНИЕ: Заголовок с разными цветами -->
+        <main class="flex-grow flex flex-col items-center justify-center text-center">
              <h1 class="text-5xl font-bold drop-shadow-lg">
                 <span class="text-indigo-400">dev</span><span class="text-green-400">tol</span><span class="text-indigo-400">.</span>
              </h1>
-             <!-- ИЗМЕНЕНИЕ: Уменьшен шрифт для акции -->
-             <p class="text-sm text-gray-100 mt-2 drop-shadow-md">Акция! Полное создание Telegram Mini App за 15.000 ₽</p>
         </main>
 
-        <!-- Кнопка заказа -->
-        <footer class="w-full max-w-md mx-auto pb-4">
-            <button class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg transform transition-transform duration-200 hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-indigo-500 focus:ring-opacity-50">
+        <!-- Кнопка заказа и акция -->
+        <footer class="absolute bottom-6 left-0 right-0 w-full max-w-md mx-auto px-6">
+            <!-- ИЗМЕНЕНИЕ: Уменьшена высота кнопки (py-4 -> py-3) -->
+            <button 
+                onclick="window.open('https://t.me/enilezhnin', '_blank')"
+                class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform transition-transform duration-200 hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-indigo-500 focus:ring-opacity-50">
                 Заказать мини-апп
             </button>
+            <p class="text-gray-400 mt-3 text-center drop-shadow-md" style="font-size: 0.65rem; line-height: 1;">Акция! Полное создание Telegram Mini App за 15.000 ₽</p>
         </footer>
     </div>
 
