@@ -40,8 +40,12 @@
 
         <!-- Центральный блок с заголовком -->
         <main class="flex-grow flex flex-col items-center justify-center text-center pt-20">
-             <h1 class="text-5xl font-bold text-white drop-shadow-lg">devtol</h1>
-             <p class="text-base text-gray-200 mt-4 drop-shadow-md">Акция! Полное создание Telegram Mini App за 15.000 ₽</p>
+             <!-- ИЗМЕНЕНИЕ: Заголовок с разными цветами -->
+             <h1 class="text-5xl font-bold drop-shadow-lg">
+                <span class="text-indigo-400">dev</span><span class="text-green-400">tol</span><span class="text-indigo-400">.</span>
+             </h1>
+             <!-- ИЗМЕНЕНИЕ: Уменьшен шрифт для акции -->
+             <p class="text-sm text-gray-100 mt-4 drop-shadow-md">Акция! Полное создание Telegram Mini App за 15.000 ₽</p>
         </main>
 
         <!-- Кнопка заказа -->
@@ -119,7 +123,6 @@
         }
 
         // --- Создание и размещение телефонов ---
-        // --- ИЗМЕНЕНИЕ: Используем ссылки на изображения вместо генерации текстур ---
         const imageUrls = [
             'https://i.postimg.cc/8cdjb9Tp/IMG-20250824-145620-324.jpg',
             'https://i.postimg.cc/7hr50w8t/Screenshot-20250824-145346.jpg',
